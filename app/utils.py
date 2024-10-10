@@ -2,6 +2,7 @@ import os, uuid, requests, ffmpeg, math, re
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 from faster_whisper import WhisperModel
+from models import GetPresignedUrlToUpload
 
 
 class SubtitleAdder:
@@ -9,6 +10,7 @@ class SubtitleAdder:
     def __init__(self, url):
         self.url = url
         self.is_youtube = True
+        self.get_presigned_url = "http://localhost:8080/api/files/presigned"
 
     def determine_is_youtube_url(self):
         pattern = re.compile(
@@ -84,9 +86,9 @@ class SubtitleAdder:
 
         return subtitle_file
 
-    def add_subtitle_to_video(self, input_file, subtitle_file, subtitle_language):
+    def add_subtitle_to_video(self, input_file, subtitle_file):
         video_input_stream = ffmpeg.input(input_file)
-        output_video = f"output-{input_file}-{subtitle_language}.mp4"
+        output_video = f"output-{input_file}.mp4"
         stream = ffmpeg.output(
             video_input_stream, output_video, vf=f"subtitles='{subtitle_file}'"
         )
@@ -96,6 +98,25 @@ class SubtitleAdder:
         os.remove(f"audio-{unique_id}.wav")
         os.remove(f"sub-{unique_id}.{language}.srt")
         os.remove(f"{unique_id}")
+
+    def save_to_s3(self, filename):
+        response = requests.get(self.get_presigned_url)
+        data = GetPresignedUrlToUpload.model_validate(response.json())
+        presigned_url = data.url
+
+        # 파일을 열고 presigned URL로 PUT 요청을 통해 업로드
+        with open(filename, "rb") as file:
+            upload_response = requests.put(presigned_url, data=file)
+
+            # 업로드 결과 확인
+            if upload_response.status_code == 200:
+                # 성공 콜백
+                print("File uploaded successfully.")
+            else:
+                # 실패 콜백
+                print(
+                    f"File upload failed with status code: {upload_response.status_code}"
+                )
 
     def subtitleAdder(self):
         self.determine_is_youtube_url()
@@ -113,8 +134,10 @@ class SubtitleAdder:
         subtitle_file = self.generate_subtitle_file(filename, language, segments)
         print("generate finished")
 
-        self.add_subtitle_to_video(filename, subtitle_file, language)
+        self.add_subtitle_to_video(filename, subtitle_file)
         print("add finished")
 
         self.remove_files(filename, language)
         print("remove finished")
+
+        self.save_to_s3(filename + ".mp4")
