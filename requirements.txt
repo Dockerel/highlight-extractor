@@ -3,3 +3,4 @@ ffmpeg-python
 pytubefix
 fastapi
 uvicorn
+pytest
