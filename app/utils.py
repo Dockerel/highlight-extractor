@@ -2,7 +2,11 @@ import os, uuid, requests, ffmpeg, math, re
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 from faster_whisper import WhisperModel
-from models import GetPresignedUrlToUpload
+from models import (
+    GetPresignedUrlToUpload,
+    SubtitleAdderCallbackResponse,
+    SubtitleAdderDto,
+)
 
 
 class SubtitleAdder:
@@ -11,6 +15,7 @@ class SubtitleAdder:
         self.url = url
         self.is_youtube = True
         self.get_presigned_url = "http://localhost:8080/api/files/presigned"
+        self.post_callback_url = "http://localhost:8080/api/videos/callback"
 
     def determine_is_youtube_url(self):
         pattern = re.compile(
@@ -93,6 +98,7 @@ class SubtitleAdder:
             video_input_stream, output_video, vf=f"subtitles='{subtitle_file}'"
         )
         ffmpeg.run(stream, overwrite_output=True)
+        return output_video
 
     def remove_files(self, unique_id, language):
         os.remove(f"audio-{unique_id}.wav")
@@ -111,10 +117,11 @@ class SubtitleAdder:
             # 업로드 결과 확인
             if upload_response.status_code == 200:
                 # 성공 콜백
-                print("File uploaded successfully.")
+                data = SubtitleAdderDto.model_validate(upload_response.json())
+                return data.url
             else:
                 # 실패 콜백
-                print(
+                raise Exception(
                     f"File upload failed with status code: {upload_response.status_code}"
                 )
 
@@ -134,10 +141,14 @@ class SubtitleAdder:
         subtitle_file = self.generate_subtitle_file(filename, language, segments)
         print("generate finished")
 
-        self.add_subtitle_to_video(filename, subtitle_file)
+        output_filename = self.add_subtitle_to_video(filename, subtitle_file)
         print("add finished")
 
         self.remove_files(filename, language)
         print("remove finished")
 
-        self.save_to_s3(filename + ".mp4")
+        return output_filename
+
+    def callback_request(self, email, url, filename):
+        data = SubtitleAdderCallbackResponse(email, url, filename)
+        requests.post(self.post_callback_url, data)

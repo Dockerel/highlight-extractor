@@ -9,9 +9,9 @@ app = FastAPI()
 def process_subtitle(dto: SubtitleAdderDto):
     adder = SubtitleAdder(dto.url)
     try:
-        adder.subtitleAdder()
-        print("Processing finished")
-        return {"message": "Processing finished"}
+        filename = adder.subtitleAdder()
+        video_url = adder.save_to_s3(filename + ".mp4")
+        adder.callback_request(dto.email, video_url, filename)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

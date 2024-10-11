@@ -8,3 +8,9 @@ class SubtitleAdderDto(BaseModel):
 
 class GetPresignedUrlToUpload(BaseModel):
     url: str
+
+
+class SubtitleAdderCallbackResponse(BaseModel):
+    email: str
+    url: str
+    filename: str
