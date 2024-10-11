@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Response
+from fastapi import FastAPI, BackgroundTasks, Response
 from fastapi.middleware.cors import CORSMiddleware
 from models import SubtitleAdderDto
-from utils import SubtitleAdder
+from core.processSubtitle import process_subtitle
 import uvicorn
 
 app = FastAPI()
@@ -15,16 +15,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-def process_subtitle(dto: SubtitleAdderDto):
-    adder = SubtitleAdder(dto.url)
-    try:
-        filename = adder.subtitleAdder()
-        video_url = adder.save_to_s3(filename + ".mp4")
-        adder.callback_request(dto.email, video_url, filename)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/extract-subtitle")
