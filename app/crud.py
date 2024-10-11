@@ -1,8 +1,8 @@
-import requests
+import requests, os
 from models import GetPresignedUrlToUpload, SubtitleAdderDto
 
 
-get_presigned_url = "http://localhost:8080/api/files/presigned"
+get_presigned_url = os.getenv("GET_PRESIGNED_URL")
 
 
 def save_to_s3(filename):
@@ -11,7 +11,7 @@ def save_to_s3(filename):
     presigned_url = data.url
 
     # 파일을 열고 presigned URL로 PUT 요청을 통해 업로드
-    with open(filename, "rb") as file:
+    with open("data/video/" + filename, "rb") as file:
         upload_response = requests.put(presigned_url, data=file)
 
         # 업로드 결과 확인

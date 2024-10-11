@@ -10,11 +10,11 @@ class SubtitleAdder:
     def __init__(self, url):
         self.url = url
         self.is_youtube = True
-        self.post_callback_url = "http://localhost:8080/api/videos/callback"
+        self.post_callback_url = os.getenv("POST_CALLBACK_URL")
 
     def determine_is_youtube_url(self):
         pattern = re.compile(
-            "^(https?:\\/\\/)?(www\\.)?(youtube\\.com|youtu\\.be)\\/(watch\\?v=|embed\\/|shorts\\/|[\\w-]+)([\\w-]{11})(\\S*)$"
+            r"^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|shorts\/|[\w-]+)?([\w-]{11})(\S*)$"
         )
         matcher = pattern.match(self.url)
         if matcher:
@@ -25,13 +25,13 @@ class SubtitleAdder:
     def download_youtube_video(self, url, filename):
         yt = YouTube(url, on_progress_callback=on_progress)
         ys = yt.streams.get_highest_resolution()
-        video = ys.download()
+        video = ys.download(output_path="data/video")
 
-        os.rename(video, filename)
+        os.rename(video, "data/video/" + filename)
 
     def download_regular_video(self, url, filename):
         r = requests.get(url)
-        with open(filename, "wb") as outfile:
+        with open("data/video/" + filename, "wb") as outfile:
             outfile.write(r.content)
 
     def download_video(self):
@@ -44,14 +44,14 @@ class SubtitleAdder:
 
     def extract_audio(self, input_file):
         extracted_audio = f"audio-{input_file}.wav"
-        stream = ffmpeg.input(input_file)
-        stream = ffmpeg.output(stream, extracted_audio)
+        stream = ffmpeg.input("data/video/" + input_file)
+        stream = ffmpeg.output(stream, "data/audio/" + extracted_audio)
         ffmpeg.run(stream, overwrite_output=True)
         return extracted_audio
 
     def transcribe(self, audio):
         model = WhisperModel("medium", device="cpu")
-        segments, info = model.transcribe(audio)
+        segments, info = model.transcribe("data/audio/" + audio)
         language = info[0]
         segments = list(segments)
         return language, segments
@@ -81,46 +81,41 @@ class SubtitleAdder:
             text += f"{segment.text}\n\n"
 
         # UTF-8 인코딩으로 파일을 열기
-        with open(subtitle_file, "w", encoding="utf-8") as f:
+        with open("data/subtitle/" + subtitle_file, "w", encoding="utf-8") as f:
             f.write(text)
 
         return subtitle_file
 
     def add_subtitle_to_video(self, input_file, subtitle_file):
-        video_input_stream = ffmpeg.input(input_file)
+        video_input_stream = ffmpeg.input("data/video/" + input_file)
         output_video = f"output-{input_file}.mp4"
         stream = ffmpeg.output(
-            video_input_stream, output_video, vf=f"subtitles='{subtitle_file}'"
+            video_input_stream,
+            "data/output/" + output_video,
+            vf=f"subtitles='data/subtitle/{subtitle_file}'",
         )
         ffmpeg.run(stream, overwrite_output=True)
         return output_video
 
     def remove_files(self, unique_id, language):
-        os.remove(f"audio-{unique_id}.wav")
-        os.remove(f"sub-{unique_id}.{language}.srt")
-        os.remove(f"{unique_id}")
+        os.remove(f"data/audio/audio-{unique_id}.wav")
+        os.remove(f"data/subtitle/sub-{unique_id}.{language}.srt")
+        os.remove(f"data/video/{unique_id}")
 
     def subtitleAdder(self):
         self.determine_is_youtube_url()
-        print("determine finished")
 
         filename = self.download_video()
-        print("download finished")
 
         audio_file = self.extract_audio(filename)
-        print("extract finished")
 
         language, segments = self.transcribe(audio_file)
-        print("transcribe finished")
 
         subtitle_file = self.generate_subtitle_file(filename, language, segments)
-        print("generate finished")
 
         output_filename = self.add_subtitle_to_video(filename, subtitle_file)
-        print("add finished")
 
         self.remove_files(filename, language)
-        print("remove finished")
 
         return output_filename
 
