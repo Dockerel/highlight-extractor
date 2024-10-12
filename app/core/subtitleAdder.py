@@ -2,7 +2,6 @@ import os, uuid, requests, ffmpeg, math, re
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 from faster_whisper import WhisperModel
-from models import SubtitleAdderCallbackResponse
 
 
 class SubtitleAdder:
@@ -10,7 +9,6 @@ class SubtitleAdder:
     def __init__(self, url):
         self.url = url
         self.is_youtube = True
-        self.post_callback_url = os.getenv("POST_CALLBACK_URL")
 
     def determine_is_youtube_url(self):
         pattern = re.compile(
@@ -118,7 +116,3 @@ class SubtitleAdder:
         self.remove_files(filename, language)
 
         return output_filename
-
-    def callback_request(self, email, url, filename):
-        data = SubtitleAdderCallbackResponse(email, url, filename)
-        requests.post(self.post_callback_url, data)

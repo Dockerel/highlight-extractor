@@ -4,13 +4,20 @@ from pydantic import BaseModel
 class SubtitleAdderDto(BaseModel):
     url: str
     email: str
+    title: str
+    memberId: int
+    categoryId: int
 
 
-class GetPresignedUrlToUpload(BaseModel):
+class GetPresignedUrlToUploadResponse(BaseModel):
     url: str
 
 
-class SubtitleAdderCallbackResponse(BaseModel):
-    email: str
-    url: str
+class GetPresignedUrlToUploadRequest(BaseModel):
     filename: str
+
+
+class VideoUploadRequest(BaseModel):
+    title: str
+    memberId: int
+    categoryId: int

@@ -1,26 +1,25 @@
 import requests, os
-from models import GetPresignedUrlToUpload, SubtitleAdderDto
+from models import SubtitleAdderDto, VideoUploadRequest
+from util import UploadFailedException
+
+upload_video_url = os.getenv("UPLOAD_VIDEO_URL")
 
 
-get_presigned_url = os.getenv("GET_PRESIGNED_URL")
-
-
-def save_to_s3(filename):
-    response = requests.get(get_presigned_url)
-    data = GetPresignedUrlToUpload.model_validate(response.json())
-    presigned_url = data.url
-
-    # 파일을 열고 presigned URL로 PUT 요청을 통해 업로드
-    with open("data/video/" + filename, "rb") as file:
-        upload_response = requests.put(presigned_url, data=file)
-
-        # 업로드 결과 확인
-        if upload_response.status_code == 200:
-            # 성공 콜백
-            data = SubtitleAdderDto.model_validate(upload_response.json())
-            return data.url
-        else:
-            # 실패 콜백
-            raise Exception(
-                f"File upload failed with status code: {upload_response.status_code}"
-            )
+def save_to_s3(filename, dto: SubtitleAdderDto):
+    # 파일을 multipart/form-data로 전송
+    filepath = f"data/output/{filename}"
+    with open(filepath, "rb") as video_file:
+        files = {
+            "file": (
+                "video.mp4",
+                video_file,
+                "video/mp4",
+            )  # 파일명, 파일 객체, MIME 타입
+        }
+        response = requests.post(
+            upload_video_url,
+            files=files,
+            data=VideoUploadRequest(dto.title, dto.memberId, dto.categoryId),
+        )
+        if response.status_code != 200:
+            raise UploadFailedException(response.status_code)
