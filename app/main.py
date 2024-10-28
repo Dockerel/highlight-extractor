@@ -1,7 +1,7 @@
 from fastapi import FastAPI, BackgroundTasks, Response
 from fastapi.middleware.cors import CORSMiddleware
 from models import SubtitleAdderDto
-from core.processSubtitle import process_subtitle
+from core.processSubtitle import SubtitleProcessor
 import uvicorn
 
 app = FastAPI()
@@ -21,7 +21,8 @@ app.add_middleware(
 async def extract_subtitle(
     dto: SubtitleAdderDto, background_tasks: BackgroundTasks, response: Response
 ):
-    background_tasks.add_task(process_subtitle, dto)
+    processor = SubtitleProcessor(dto)
+    background_tasks.add_task(processor.process)
     response.status_code = 200
     return {"message": "Processing started"}
 
