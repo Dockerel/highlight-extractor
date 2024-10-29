@@ -1,6 +1,6 @@
 import requests, os
-from models import SubtitleAdderDto
-from util import UploadFailedException, print_log
+from .models import SubtitleAdderDto
+from .util import UploadFailedException, print_log
 from dotenv import load_dotenv
 
 load_dotenv()

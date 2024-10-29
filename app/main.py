@@ -1,7 +1,7 @@
 from fastapi import FastAPI, BackgroundTasks, Response
 from fastapi.middleware.cors import CORSMiddleware
-from models import SubtitleAdderDto
-from core.processSubtitle import SubtitleProcessor
+from .models import SubtitleAdderDto
+from .core.processSubtitle import SubtitleProcessor
 import uvicorn
 
 app = FastAPI()

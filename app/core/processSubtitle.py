@@ -1,9 +1,9 @@
-from models import SubtitleAdderDto
-from core.sendMail import SendMail
-from core.downloadVideo import DownloadVideo
-from core.subtitleAdder import SubtitleAdder
-from core.videoResize import VideoResize
-from crud import CRUD
+from ..models import SubtitleAdderDto
+from ..core.sendMail import SendMail
+from ..core.downloadVideo import DownloadVideo
+from ..core.subtitleAdder import SubtitleAdder
+from ..core.videoResize import VideoResize
+from ..crud import CRUD
 import uuid, os
 
 

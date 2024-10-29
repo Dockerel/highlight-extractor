@@ -2,7 +2,7 @@ import smtplib, os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime
-from util import print_log
+from ..util import print_log
 from dotenv import load_dotenv
 
 load_dotenv()

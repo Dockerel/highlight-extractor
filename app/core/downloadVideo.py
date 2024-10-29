@@ -1,5 +1,5 @@
 import requests
-from util import print_log
+from ..util import print_log
 
 
 class DownloadVideo:

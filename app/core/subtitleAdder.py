@@ -1,6 +1,6 @@
 import os, ffmpeg, math
 from faster_whisper import WhisperModel
-from util import print_log
+from ..util import print_log
 
 
 class SubtitleAdder:
