@@ -3,12 +3,12 @@ from util import print_log
 
 
 class VideoResize:
-    def __init__(self):
-        pass
+    def __init__(self, filename):
+        self.filename = filename
 
-    def resize(self, filename):
-        new_filename = f"resize_{filename}"
-        input_video = f"data/video/{filename}.mp4"
+    def resize(self):
+        new_filename = f"resize_{self.filename}"
+        input_video = f"data/video/{self.filename}.mp4"
         try:
             # FFmpeg 명령어를 subprocess로 실행
             subprocess.run(

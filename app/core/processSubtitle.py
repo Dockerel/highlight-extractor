@@ -1,8 +1,9 @@
 from models import SubtitleAdderDto
+from core.sendMail import SendMail
+from core.downloadVideo import DownloadVideo
 from core.subtitleAdder import SubtitleAdder
 from core.videoResize import VideoResize
-from crud import save_to_s3
-from util import download_video, smtp_callback
+from crud import CRUD
 import uuid, os
 
 
@@ -20,21 +21,24 @@ class SubtitleProcessor:
         ]
 
     def download_video(self):
-        download_video(self.filename, self.dto.url)
+        downloader = DownloadVideo(self.filename, self.dto.url)
+        downloader.download_video()
 
     def resize_video(self):
-        resizer = VideoResize()
-        resizer.resize(self.filename)
+        resizer = VideoResize(self.filename)
+        resizer.resize()
 
     def add_subtitle(self):
         adder = SubtitleAdder(self.filename)
         adder.subtitleAdder()
 
     def save_video(self):
-        save_to_s3(self.filename, self.dto)
+        saver = CRUD(self.filename, self.dto)
+        saver.save_to_s3()
 
     def send_email(self):
-        smtp_callback(self.dto.email)
+        sender = SendMail(self.dto.email)
+        sender.smtp_callback()
 
     def delete_remain_files(self):
         for _dir, _filename in self.dir:
