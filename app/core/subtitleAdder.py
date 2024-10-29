@@ -6,7 +6,7 @@ from util import print_log
 class SubtitleAdder:
 
     def __init__(self, filename):
-        self.filename = filename
+        self.filename = "resize_" + filename
         self.audio_path = "data/audio"
         self.output_path = "data/output"
         self.subtitle_path = "data/subtitle"
@@ -78,11 +78,9 @@ class SubtitleAdder:
             audio_file = self.extract_audio(filename)
             language, segments = self.transcribe(audio_file)
             subtitle_file = self.generate_subtitle_file(filename, language, segments)
-            output_filename = self.add_subtitle_to_video(filename, subtitle_file)
+            self.add_subtitle_to_video(filename, subtitle_file)
             self.remove_files(filename, language)
             print_log("Subtitle added successfully.")
-
-            return output_filename
         except Exception as e:
             print_log(e, 1)
             raise Exception

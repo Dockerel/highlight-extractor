@@ -7,8 +7,8 @@ class VideoResize:
         pass
 
     def resize(self, filename):
-        new_filename = f"resize_{filename}".split(".")[0]
-        input_video = f"data/video/{filename}"
+        new_filename = f"resize_{filename}"
+        input_video = f"data/video/{filename}.mp4"
         try:
             # FFmpeg 명령어를 subprocess로 실행
             subprocess.run(
@@ -27,9 +27,6 @@ class VideoResize:
             os.remove(input_video)
             os.rename(f"data/video/{new_filename}.mp4", f"data/video/{new_filename}")
             print_log("Video resized successfully.")
-
-            return new_filename
         except Exception as e:
-            os.remove(input_video)
             print_log(e, 1)
             raise Exception

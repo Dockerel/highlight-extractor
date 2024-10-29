@@ -8,7 +8,7 @@ upload_video_url = os.getenv("UPLOAD_VIDEO_URL")
 def save_to_s3(filename, dto: SubtitleAdderDto):
     try:
         # 파일을 multipart/form-data로 전송
-        filepath = f"data/output/{filename}"
+        filepath = f"data/output/output-resize_{filename}.mp4"
         # with open(filepath, "rb") as video_file:
         #     files = {
         #         "file": (

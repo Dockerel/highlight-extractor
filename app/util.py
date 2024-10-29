@@ -1,4 +1,4 @@
-import smtplib, os, uuid, requests
+import smtplib, os, requests
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime
@@ -66,19 +66,13 @@ def smtp_callback(email):
         raise Exception
 
 
-def download_video(url):
-    # filename
-    unique_id = f"{str(uuid.uuid4())}.mp4"
+def download_video(filename, url):
     try:
         r = requests.get(url)
-        with open(f"data/video/{unique_id}", "wb") as outfile:
+        with open(f"data/video/{filename}.mp4", "wb") as outfile:
             outfile.write(r.content)
         print_log("Video downloaded successfully.")
-
-        return unique_id
     except Exception as e:
-        if os.path.exists(f"data/video/{unique_id}"):
-            os.remove(f"data/video/{unique_id}")
         print_log(e, 1)
         raise Exception
 
