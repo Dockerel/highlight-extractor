@@ -50,7 +50,7 @@ class SendMail:
         msg = MIMEMultipart("alternative")
 
         msg["Subject"] = "TALKAK : Your Video Has Been Processed Successfully!"
-        msg["From"] = self.smtp_id
+        msg["From"] = "딸깍"
         msg["To"] = self.email
 
         msg.attach(MIMEText(self.makeMsg(self.email), "html"))
