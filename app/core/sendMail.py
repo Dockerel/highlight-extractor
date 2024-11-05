@@ -47,6 +47,7 @@ class SendMail:
         return html_content
 
     def smtp_callback(self):
+        print_log("Email sending started.")
         msg = MIMEMultipart("alternative")
 
         msg["Subject"] = "TALKAK : Your Video Has Been Processed Successfully!"
@@ -60,7 +61,6 @@ class SendMail:
                 server.starttls()
                 server.login(self.smtp_id, self.smtp_pw)
                 server.sendmail(self.smtp_id, self.email, msg.as_string())
-                print_log("Email sent successfully!")
+                print_log("Email sent successfully")
         except Exception as e:
-            print_log(e, 1)
-            raise Exception
+            raise Exception(e)

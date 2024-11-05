@@ -7,26 +7,25 @@ class VideoResize:
         self.filename = filename
 
     def resize(self):
-        new_filename = f"resize_{self.filename}"
-        input_video = f"data/video/{self.filename}.mp4"
+        print_log("Video resizing started.")
+        video_path = f"data/video/{self.filename}.mp4"
+        temp_output_video = f"data/video/temp_{self.filename}.mp4"
         try:
             # FFmpeg 명령어를 subprocess로 실행
             subprocess.run(
                 [
                     "ffmpeg",
                     "-i",
-                    input_video,
+                    video_path,
                     "-vf",
                     "crop=iw*3/4:ih,scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
                     "-c:a",
                     "copy",
-                    f"data/video/{new_filename}.mp4",
+                    temp_output_video,
                 ],
                 check=True,
             )
-            os.remove(input_video)
-            os.rename(f"data/video/{new_filename}.mp4", f"data/video/{new_filename}")
+            os.replace(temp_output_video, video_path)
             print_log("Video resized successfully.")
         except Exception as e:
-            print_log(e, 1)
-            raise Exception
+            raise Exception(e)
