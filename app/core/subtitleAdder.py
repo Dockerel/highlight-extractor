@@ -1,5 +1,4 @@
-import os, ffmpeg, math
-from faster_whisper import WhisperModel
+import whisper, os, ffmpeg, math
 from ..util import print_log
 
 
@@ -19,9 +18,12 @@ class SubtitleAdder:
         ffmpeg.run(stream, overwrite_output=True)
 
     def transcribe(self):
-        model = WhisperModel("medium", device="cpu")
-        segments, _ = model.transcribe(f"{self.audio_path}/{self.filename}.wav")
-        segments = list(segments)
+        # model = whisper.load_model("medium").to("cuda")
+        model = whisper.load_model("medium")
+        result = model.transcribe(
+            f"{self.audio_path}/{self.filename}.wav", word_timestamps=True
+        )
+        segments = result["segments"]
         return segments
 
     def format_time_for_srt(self, seconds):
@@ -40,12 +42,13 @@ class SubtitleAdder:
         subtitle_file = f"{self.filename}.srt"
         text = ""
         for index, segment in enumerate(segments):
-            segment_start = self.format_time_for_srt(segment.start)
-            segment_end = self.format_time_for_srt(segment.end)
+            segment_start = self.format_time_for_srt(segment["start"])
+            segment_end = self.format_time_for_srt(segment["end"])
+            segment_text = segment["text"].strip()
 
             text += f"{str(index + 1)}\n"
             text += f"{segment_start} --> {segment_end}\n"
-            text += f"{segment.text}\n\n"
+            text += f"{segment_text}\n\n"
 
         with open(f"{self.subtitle_path}/{subtitle_file}", "w", encoding="utf-8") as f:
             f.write(text)
@@ -58,8 +61,8 @@ class SubtitleAdder:
             video_input_stream,
             f"{self.video_path}/temp_{self.filename}.mp4",
             vf=f"subtitles='{self.subtitle_path}/{self.filename}.srt'",
-            vcodec="h264_nvenc",   # 비디오 코덱으로 h264_nvenc 설정
-            acodec="copy"
+            vcodec="h264_nvenc",  # 비디오 코덱으로 h264_nvenc 설정
+            acodec="copy",
         ).global_args("-hwaccel", "cuda")
         ffmpeg.run(stream, overwrite_output=True)
         os.replace(temp_output_video, video_path)
