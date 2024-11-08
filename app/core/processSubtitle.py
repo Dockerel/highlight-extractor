@@ -45,7 +45,7 @@ class SubtitleProcessor:
 
     def extract_highlights(self):
         self.update_status("extracting highlights")
-        extractor = HighlightExtractor(self.filename)
+        extractor = HighlightExtractor(self.filename,1)
         extractor.run()
 
     def save_video(self):

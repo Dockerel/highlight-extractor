@@ -58,7 +58,9 @@ class SubtitleAdder:
             video_input_stream,
             f"{self.video_path}/temp_{self.filename}.mp4",
             vf=f"subtitles='{self.subtitle_path}/{self.filename}.srt'",
-        )
+            vcodec="h264_nvenc",   # 비디오 코덱으로 h264_nvenc 설정
+            acodec="copy"
+        ).global_args("-hwaccel", "cuda")
         ffmpeg.run(stream, overwrite_output=True)
         os.replace(temp_output_video, video_path)
 

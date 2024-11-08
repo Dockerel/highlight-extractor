@@ -11,16 +11,17 @@ class VideoResize:
         video_path = f"data/video/{self.filename}.mp4"
         temp_output_video = f"data/video/temp_{self.filename}.mp4"
         try:
-            # FFmpeg 명령어를 subprocess로 실행
             subprocess.run(
                 [
                     "ffmpeg",
+                    "-hwaccel", "cuda",
                     "-i",
                     video_path,
                     "-vf",
                     "crop=iw*3/4:ih,scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
-                    "-c:a",
-                    "copy",
+                    "-c:v", "h264_nvenc",
+                    "-preset", "fast",
+                    "-c:a", "copy",
                     temp_output_video,
                 ],
                 check=True,
