@@ -33,7 +33,7 @@ class SubtitleProcessor:
         adder.subtitleAdder()
 
     def extract_highlights(self):
-        extractor = HighlightExtractor(self.filename)
+        extractor = HighlightExtractor(self.filename,1)
         extractor.run()
 
     def save_video(self):

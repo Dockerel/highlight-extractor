@@ -134,15 +134,20 @@ class HighlightExtractor:
             for j in range(len(highlight)):
                 timestamp = highlight[j]
                 output_path = f"data/clip/{self.filename}_{j}.mp4"
-                (
+                stream = (
                     ffmpeg.input(
                         f"data/video/{self.filename}.mp4",
                         ss=timestamp[0],
                         to=timestamp[1],
                     )
-                    .output(output_path)
-                    .run(overwrite_output=True)
+                    .output(
+                        output_path,
+                        vcodec="h264_nvenc",
+                        acodec="copy"
+                    )
+                    .global_args("-hwaccel", "cuda")
                 )
+                ffmpeg.run(stream, overwrite_output=True)
                 file.write(f"file ../clip/{self.filename}_{j}.mp4\n")
             file.close()
 
@@ -159,16 +164,27 @@ class HighlightExtractor:
                 os.remove(file_path)
 
     def video_cut(self, highlights):
+        print(highlights)
         for i in range(5):
-            timestamp = highlights[i][0]
+            timestamp = highlights[i]
+            # [[0.0, 60.0], [[90.94, 150.94]], [92.58, 152.58], [92.58, 152.58], [91.94, 151.94]]
+            # [[72.84, 132.84], [92.58, 152.58], [[90.94, 150.94]], [124.54, 184.54], [[72.84, 132.84]]]
+            # 와 같이 timestamp의 depth가 일정하지 않은 버그
+            if len(timestamp)!=2:
+                timestamp=timestamp[0]
             output_path = f"data/output/{self.filename}_{i}.mp4"
-            (
+            stream = (
                 ffmpeg.input(
                     f"data/video/{self.filename}.mp4", ss=timestamp[0], to=timestamp[1]
                 )
-                .output(output_path)
-                .run(overwrite_output=True)
+                .output(
+                    output_path,
+                    vcodec="h264_nvenc",
+                    acodec="copy"
+                )
+                .global_args("-hwaccel", "cuda")
             )
+            ffmpeg.run(stream, overwrite_output=True)
 
     # 비디오 자르는 코드
     def return_short_videos(self, highlights):
@@ -188,3 +204,4 @@ class HighlightExtractor:
             print_log("Highlights extracted successfully.")
         except Exception as e:
             raise Exception(e)
+
