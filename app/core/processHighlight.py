@@ -76,9 +76,9 @@ class HighlightProcessor:
             self.resize_video()
             self.add_subtitle()
             self.extract_highlights()
-            # self.save_video()
+            self.save_video()
             self.update_status("completed")
-            # self.send_email()
+            self.send_email()
         except Exception as e:
             print_log(e, 1)
             self.update_status("failed")
