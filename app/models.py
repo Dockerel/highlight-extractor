@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class SubtitleAdderDto(BaseModel):
+class HighlightExtractorDto(BaseModel):
     url: str
     email: str
     title: str

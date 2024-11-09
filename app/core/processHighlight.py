@@ -1,4 +1,4 @@
-from ..models import SubtitleAdderDto
+from ..models import HighlightExtractorDto
 from ..core.sendMail import SendMail
 from ..core.downloadVideo import DownloadVideo
 from ..core.subtitleAdder import SubtitleAdder
@@ -11,8 +11,8 @@ import uuid, os, glob
 
 processing_status = {}
 
-class SubtitleProcessor:
-    def __init__(self, dto: SubtitleAdderDto, task_id: str):
+class HighlightProcessor:
+    def __init__(self, dto: HighlightExtractorDto, task_id: str):
         self.dto = dto
         self.task_id = task_id
         self.filename = str(uuid.uuid4())
@@ -54,12 +54,11 @@ class SubtitleProcessor:
         saver.save_to_s3()
 
     def send_email(self):
-        self.update_status("sending email")
         sender = SendMail(self.dto.email)
         sender.smtp_callback()
 
     def delete_remain_files(self):
-        self.update_status("cleaning up files")
+        # self.update_status("cleaning up files")
         for _dir, _filename in self.dir:
             if os.path.exists(f"data/{_dir}/{_filename}"):
                 os.remove(f"data/{_dir}/{_filename}")
@@ -77,13 +76,12 @@ class SubtitleProcessor:
             self.resize_video()
             self.add_subtitle()
             self.extract_highlights()
-            self.save_video()
-            self.send_email()
+            # self.save_video()
             self.update_status("completed")
+            # self.send_email()
         except Exception as e:
             print_log(e, 1)
             self.update_status("failed")
         finally:
             self.delete_remain_files()
-            delete_status(self.task_id)
             return

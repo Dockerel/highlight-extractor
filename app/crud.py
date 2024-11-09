@@ -1,5 +1,5 @@
 import requests, os
-from .models import SubtitleAdderDto
+from .models import HighlightExtractorDto
 from .util import UploadFailedException, print_log
 from dotenv import load_dotenv
 
@@ -7,7 +7,7 @@ load_dotenv()
 
 
 class CRUD:
-    def __init__(self, filename, dto: SubtitleAdderDto):
+    def __init__(self, filename, dto: HighlightExtractorDto):
         self.filename = filename
         self.dto = dto
         self.upload_video_url = os.getenv("UPLOAD_VIDEO_URL")

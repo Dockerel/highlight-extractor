@@ -18,8 +18,8 @@ class SubtitleAdder:
         ffmpeg.run(stream, overwrite_output=True)
 
     def transcribe(self):
-        # model = whisper.load_model("medium").to("cuda")
-        model = whisper.load_model("medium")
+        # model = whisper.load_model("medium")
+        model = whisper.load_model("medium").to("cuda")
         result = model.transcribe(
             f"{self.audio_path}/{self.filename}.wav", word_timestamps=True
         )
@@ -57,10 +57,18 @@ class SubtitleAdder:
         video_input_stream = ffmpeg.input(f"{self.video_path}/{self.filename}.mp4")
         temp_output_video = f"{self.video_path}/temp_{self.filename}.mp4"
         video_path = f"{self.video_path}/{self.filename}.mp4"
+
+        subtitle_filter = (
+            f"subtitles='{self.subtitle_path}/{self.filename}.srt':force_style="
+            "'Alignment=2,Fontname=/usr/share/fonts/truetype/nanum/NanumGothic.ttf,"
+            "Fontsize=16,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,"
+            "BackColour=&H00000000,BorderStyle=3,Outline=2'"
+        )
+
         stream = ffmpeg.output(
             video_input_stream,
             f"{self.video_path}/temp_{self.filename}.mp4",
-            vf=f"subtitles='{self.subtitle_path}/{self.filename}.srt'",
+            vf=subtitle_filter,
             vcodec="h264_nvenc",  # 비디오 코덱으로 h264_nvenc 설정
             acodec="copy",
         ).global_args("-hwaccel", "cuda")
