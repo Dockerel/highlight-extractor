@@ -7,7 +7,7 @@ from ..core.highlightExtractor import HighlightExtractor
 from ..core.status_manager import set_status, delete_status
 from ..crud import CRUD
 from ..util import print_log
-import uuid, os, glob
+import os, glob
 
 processing_status = {}
 
@@ -15,7 +15,7 @@ class HighlightProcessor:
     def __init__(self, dto: HighlightExtractorDto, task_id: str):
         self.dto = dto
         self.task_id = task_id
-        self.filename = str(uuid.uuid4())
+        self.filename = task_id
         self.dir = [
             ["audio", f"{self.filename}.wav"],
             ["concat", f"{self.filename}.txt"],
@@ -45,7 +45,7 @@ class HighlightProcessor:
 
     def extract_highlights(self):
         self.update_status("extracting highlights")
-        extractor = HighlightExtractor(self.filename,1)
+        extractor = HighlightExtractor(self.filename)
         extractor.run()
 
     def save_video(self):
