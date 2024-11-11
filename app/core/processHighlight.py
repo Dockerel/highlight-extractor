@@ -50,7 +50,7 @@ class HighlightProcessor:
 
     def save_video(self):
         self.update_status("saving video to S3")
-        saver = CRUD(self.filename, self.dto)
+        saver = CRUD(self.filename)
         saver.save_to_s3()
 
     def send_email(self):
