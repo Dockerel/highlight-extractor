@@ -4,6 +4,7 @@ from ..core.downloadVideo import DownloadVideo
 from ..core.subtitleAdder import SubtitleAdder
 from ..core.videoResize import VideoResize
 from ..core.highlightExtractor import HighlightExtractor
+from ..core.thumbnailExtractor import ThumbnailExtractor
 from ..core.status_manager import set_status, delete_status
 from ..crud import CRUD
 from ..util import print_log
@@ -48,6 +49,11 @@ class HighlightProcessor:
         extractor = HighlightExtractor(self.filename)
         extractor.run()
 
+    def extract_thumbnails(self):
+        self.update_status("extracting thumbnails")
+        extractor = ThumbnailExtractor(self.filename)
+        extractor.run()
+
     def save_video(self):
         self.update_status("saving video to S3")
         saver = CRUD(self.filename)
@@ -69,6 +75,9 @@ class HighlightProcessor:
         for file_path in glob.glob(f"data/output/{self.filename}_*.mp4"):
             os.remove(file_path)
 
+        for file_path in glob.glob(f"data/thumbnail/{self.filename}_*.jpg"):
+            os.remove(file_path)
+
     def process(self):
         try:
             self.update_status("processing started")
@@ -76,6 +85,7 @@ class HighlightProcessor:
             self.resize_video()
             self.add_subtitle()
             self.extract_highlights()
+            self.extract_thumbnails()
             self.save_video()
             self.update_status("completed")
             self.send_email()
