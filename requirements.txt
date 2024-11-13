@@ -9,3 +9,4 @@ requests
 uvicorn
 openai-whisper
 pyngrok
+boto3
