@@ -197,3 +197,4 @@ pyrightconfig.json
 
 *.ipynb
 *.sh
+*.out
