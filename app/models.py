@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, StrictInt, StrictStr
+from typing import List, Union
 
 class HighlightExtractorDto(BaseModel):
     url: str
@@ -31,7 +31,7 @@ class TaskStatusResponse(BaseModel):
     status: str
 
 class SelectHighlightResponse(BaseModel):
-    urls: List[str]
+    urls: List[List[Union[int, str]]]
     dto: HighlightExtractorDto
 
 class ClearProcessStatusResponse(BaseModel):
