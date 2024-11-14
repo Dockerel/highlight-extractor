@@ -1,6 +1,5 @@
 import requests, os, time
 from pytubefix import YouTube
-from pytubefix.cli import on_progress
 from ..util import print_log
 
 
@@ -28,12 +27,13 @@ class DownloadVideo:
         error_msg=""
         while retries>0:
             try:
-                yt = YouTube(self.url, on_progress_callback=on_progress)
+                yt = YouTube(self.url, use_oauth=True, allow_oauth_cache=True)
                 ys = yt.streams.get_highest_resolution()
                 video = ys.download(output_path)
                 os.rename(video, f"{output_path}/{self.filename}.mp4")
                 return
             except Exception as e:
+                error_msg=e
                 retries -= 1
                 time.sleep(1)
         if retries==0:
