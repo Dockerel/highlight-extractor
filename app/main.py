@@ -1,9 +1,9 @@
 # main.py
 from fastapi import FastAPI, BackgroundTasks, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from .models import HighlightExtractorDto
+from .models import HighlightExtractorDto, ExtractHighlightsAsyncResponse, TaskStatusResponse, SelectHighlightResponse, ClearProcessStatusResponse
 from .core.processHighlight import HighlightProcessor
-from .core.status_manager import init_status, set_status, get_status, delete_status, get_urls, get_dto
+from .core.status_manager import init_status, set_status, get_status, delete_status, get_urls, get_dto, clear_status
 import uvicorn
 import uuid
 
@@ -18,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/extract-highlights")
+@app.post("/extract-highlights", response_model = ExtractHighlightsAsyncResponse)
 async def extract_highlights(
     dto: HighlightExtractorDto, background_tasks: BackgroundTasks, response: Response
 ):
@@ -30,7 +30,7 @@ async def extract_highlights(
     response.status_code = 200
     return {"message": "Processing started", "task_id": task_id}
 
-@app.get("/task-status/{task_id}")
+@app.get("/task-status/{task_id}", response_model = TaskStatusResponse)
 async def get_task_status(task_id: str):
     status = get_status(task_id)
     if status is None:
@@ -39,7 +39,7 @@ async def get_task_status(task_id: str):
         delete_status(task_id)
     return {"task_id": task_id, "status": status}
 
-@app.get("/select-highlight/{task_id}")
+@app.get("/select-highlight/{task_id}", response_model = SelectHighlightResponse)
 async def select_highlight(task_id: str):
     urls = get_urls(task_id)
     dto = get_dto(task_id)
@@ -47,6 +47,11 @@ async def select_highlight(task_id: str):
         raise HTTPException(status_code=404, detail="Task not found")
     delete_status(task_id)
     return {"urls": urls, "dto": dto}
+
+@app.get("/clear-status", response_model = ClearProcessStatusResponse)
+async def clear_process_status():
+    clear_status()
+    return {"message": "Processes successfully cleared"}
 
 
 if __name__ == "__main__":

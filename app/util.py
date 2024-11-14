@@ -1,5 +1,6 @@
 import requests
 from datetime import datetime
+from pytz import timezone
 
 
 class UploadFailedException(Exception):
@@ -21,8 +22,11 @@ def download_video(filename, url):
 
 
 def print_log(content, mode=0):
+    seoul_time = datetime.now(timezone('Asia/Seoul'))
+    
     if mode == 1:
         print("\033[91mError\033[0m: ", end="")
     else:
         print("\033[92mINFO\033[0m: ", end="")
-    print(f'{datetime.now().strftime("%Y.%m.%d %I:%M:%S")} | {content}')
+    
+    print(f'{seoul_time.strftime("%Y.%m.%d %I:%M:%S")} | {content}')

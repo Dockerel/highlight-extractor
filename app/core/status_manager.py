@@ -29,3 +29,6 @@ def get_dto(task_id: str):
     if task_id in processing_status:
         return processing_status[task_id].get("dto")
     return None
+
+def clear_status():
+    processing_status.clear()
