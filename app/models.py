@@ -30,6 +30,10 @@ class TaskStatusResponse(BaseModel):
     task_id: str
     status: str
 
+class HighlightSelectionRequest(BaseModel):
+    task_id: str
+    index: int
+
 class SelectHighlightResponse(BaseModel):
     urls: List[List[Union[int, str]]]
     dto: HighlightExtractorDto

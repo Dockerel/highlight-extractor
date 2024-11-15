@@ -9,9 +9,10 @@ load_dotenv()
 
 
 class CRUD:
-    def __init__(self, filename):
+    def __init__(self, filename, index=0):
         self.filename = filename
         self.task_id = filename
+        self.index = index
         self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.aws_bucket_name = os.getenv("AWS_BUCKET_NAME")
@@ -44,33 +45,26 @@ class CRUD:
             raise Exception("Credentials not available")
         except Exception as e:
             raise Exception(e)
+    
+    def delete_from_s3(self):
+        print_log("Deleting from s3 started.")
+        try:
+            s3 = boto3.client(
+                's3',
+                aws_access_key_id=self.aws_access_key_id,
+                aws_secret_access_key=self.aws_secret_access_key
+            )
 
-    # def save_to_s3(self):
-    #     print_log("Saving to s3 started.")
-    #     try:
-    #         for i in range(5):
-    #             # 파일을 multipart/form-data로 전송
-    #             filepath = f"data/output/{self.filename}_{i}.mp4"
-    #             with open(filepath, "rb") as video_file:
-    #                 files = {
-    #                     "file": (
-    #                         f"{self.filename}_{i}.mp4",
-    #                         video_file,
-    #                         "video/mp4",
-    #                     )  # 파일명, 파일 객체, MIME 타입
-    #                 }
-    #                 response = requests.post(
-    #                     self.upload_video_url,
-    #                     files=files
-    #                 )
-    #                 print(response.text)
-    #                 if response.status_code != 200:
-    #                     print("error")
-    #                     raise UploadFailedException(response.status_code)
-    #                 response_data = response.json()
-    #                 url = response_data.get("url")
-    #                 add_urls(self.task_id, url)
-    #             break
-    #         print_log("Saved to s3 successfully.")
-    #     except Exception as e:
-    #         raise Exception(e)
+            for i in range(5):
+                if i==self.index:
+                    continue
+                video_filename = f"{self.filename}_{i}.mp4"
+                s3.delete_object(Bucket=self.aws_bucket_name, Key=video_filename)
+                
+                thumbnail_filename = f"thumbnails/{self.filename}_{i}.jpg"
+                s3.delete_object(Bucket=self.aws_bucket_name, Key=thumbnail_filename)
+
+        except NoCredentialsError:
+            raise Exception("Credentials not available")
+        except Exception as e:
+            raise Exception(e)

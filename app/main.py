@@ -1,7 +1,9 @@
 # main.py
 from fastapi import FastAPI, BackgroundTasks, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from .models import HighlightExtractorDto, ExtractHighlightsAsyncResponse, TaskStatusResponse, SelectHighlightResponse, ClearProcessStatusResponse
+from .models import HighlightExtractorDto, ExtractHighlightsAsyncResponse, TaskStatusResponse, SelectHighlightResponse, ClearProcessStatusResponse, HighlightSelectionRequest
+from .crud import CRUD
+from .util import video_making_request_sending
 from .core.processHighlight import HighlightProcessor
 from .core.status_manager import init_status, set_status, get_status, delete_status, get_urls, get_dto, clear_status
 import uvicorn
@@ -35,8 +37,8 @@ async def get_task_status(task_id: str):
     status = get_status(task_id)
     if status is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    if status == "failed":
-        delete_status(task_id)
+    # if status == "failed":
+    #     delete_status(task_id)
     return {"task_id": task_id, "status": status}
 
 @app.get("/select-highlight/{task_id}", response_model = SelectHighlightResponse)
@@ -45,8 +47,21 @@ async def select_highlight(task_id: str):
     dto = get_dto(task_id)
     if urls is None or dto is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    delete_status(task_id)
     return {"urls": urls, "dto": dto}
+
+@app.post("/select-highlight")
+async def delete_unselected_files(req: HighlightSelectionRequest):
+    try:
+        task_id = req.task_id
+        executor = CRUD(task_id, req.index)
+        executor.delete_from_s3()
+        # video object making request
+        dto = get_dto(task_id)
+        video_id = video_making_request_sending(task_id, dto)
+        # delete_status(task_id)
+        return {"video_id": video_id}
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Task not found")
 
 @app.get("/clear-status", response_model = ClearProcessStatusResponse)
 async def clear_process_status():

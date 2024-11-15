@@ -1,6 +1,7 @@
-import requests
+import requests, boto3, time
 from datetime import datetime
 from pytz import timezone
+from .models import HighlightExtractorDto
 
 
 class UploadFailedException(Exception):
@@ -30,3 +31,28 @@ def print_log(content, mode=0):
         print("\033[92mINFO\033[0m: ", end="")
     
     print(f'{seoul_time.strftime("%Y.%m.%d %I:%M:%S")} | {content}')
+
+def video_making_request_sending(filename, dto:HighlightExtractorDto):
+    retry = 5
+    url = "http://ec2-43-202-1-31.ap-northeast-2.compute.amazonaws.com:8080/api/videos/create"
+
+    data = {
+        "title": dto.title,
+        "member_id": dto.memberId,
+        "category_id": dto.categoryId,
+        "file_name": filename
+    }
+    
+    error_msg=""
+    while retries>0:
+        try:
+            response = requests.post(url, json=data)
+            response_data = response.json()
+            video_id = response_data["video_id"]
+            return video_id
+        except Exception as e:
+            error_msg=e
+            retries -= 1
+            time.sleep(1)
+    if retries==0:
+        raise Exception(error_msg)

@@ -23,11 +23,13 @@ class DownloadVideo:
         )
 
     def youtube_video_download(self, retries=5):
+        print("youtube video download")
         output_path = "data/video"
         error_msg=""
         while retries>0:
             try:
-                yt = YouTube(self.url, use_oauth=True, allow_oauth_cache=True)
+                # yt = YouTube(self.url, use_oauth=True, allow_oauth_cache=True)
+                yt = YouTube(self.url)
                 ys = yt.streams.get_highest_resolution()
                 video = ys.download(output_path)
                 os.rename(video, f"{output_path}/{self.filename}.mp4")
@@ -47,10 +49,11 @@ class DownloadVideo:
     def download_video(self):
         print_log("Video downloading started.")
         try:
-            if self.is_youtube_url():
-                self.youtube_video_download()
-            else:
-                self.non_youtube_video_download()
+            self.youtube_video_download()
+            # if self.is_youtube_url():
+            #     self.youtube_video_download()
+            # else:
+            #     self.non_youtube_video_download()
             print_log("Video downloaded successfully.")
         except Exception as e:
             raise Exception(e)
